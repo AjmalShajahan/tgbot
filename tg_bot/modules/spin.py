@@ -30,17 +30,13 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
 
-    is_group = chat.type != "private" and chat.type != "channel"
+    is_group = chat.type not in ["private", "channel"]
 
     prev_message = update.effective_message.reply_to_message
 
     is_silent = True
-    if len(args) >= 1:
-        is_silent = not (
-            args[0].lower() == 'notify' or
-            args[0].lower() == 'loud' or
-            args[0].lower() == 'violent'
-        )
+    if args:
+        is_silent = not args[0].lower() in ['notify', 'loud', 'violent']
 
     if prev_message and is_group:
         try:
@@ -50,9 +46,7 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
                 disable_notification=is_silent
             )
         except BadRequest as excp:
-            if excp.message == "Chat_not_modified":
-                pass
-            else:
+            if excp.message != "Chat_not_modified":
                 raise
         sql.add_mid(chat.id, prev_message.message_id)
         return "<b>{}:</b>" \
@@ -77,9 +71,7 @@ def unpin(bot: Bot, update: Update) -> str:
     try:
         bot.unpinChatMessage(chat.id)
     except BadRequest as excp:
-        if excp.message == "Chat_not_modified":
-            pass
-        else:
+        if excp.message != "Chat_not_modified":
             raise
     sql.remove_mid(chat.id)
     return "<b>{}:</b>" \
@@ -188,8 +180,6 @@ def pin_chat_message(bot, chat_id, message_id, is_silent):
             disable_notification=is_silent
         )
     except BadRequest as excp:
-        if excp.message == "Chat_not_modified":
-            pass
         """else:
             raise"""
 

@@ -32,7 +32,7 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
         return ""
 
     user_member = chat.get_member(user_id)
-    if user_member.status == "administrator" or user_member.status == "creator":
+    if user_member.status in ["administrator", "creator"]:
         message.reply_text("How am I meant to promote someone that's already an admin?")
         return ""
 
@@ -89,7 +89,7 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
         message.reply_text("This person CREATED the chat, how would I demote them?")
         return ""
 
-    if not user_member.status == "administrator":
+    if user_member.status != "administrator":
         message.reply_text("Can't demote what wasn't promoted!")
         return ""
 
@@ -136,8 +136,8 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
 def invite(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     if chat.username:
-        update.effective_message.reply_text("@" + chat.username)
-    elif chat.type == chat.SUPERGROUP or chat.type == chat.CHANNEL:
+        update.effective_message.reply_text(f'@{chat.username}')
+    elif chat.type in [chat.SUPERGROUP, chat.CHANNEL]:
         bot_member = chat.get_member(bot.id)
         if bot_member.can_invite_users:
             invitelink = bot.exportChatInviteLink(chat.id)

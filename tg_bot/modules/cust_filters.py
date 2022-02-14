@@ -30,7 +30,7 @@ def list_handlers(bot: Bot, update: Update):
     user = update.effective_user  # type: Optional[User]
 
     conn = connected(bot, update, chat, user.id, need_admin=False)
-    if not conn == False:
+    if conn != False:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
         filter_list = f"*Filters in {chat_name}:*\n"
@@ -62,7 +62,7 @@ def list_handlers(bot: Bot, update: Update):
         else:
             filter_list += entry
 
-    if not filter_list == BASIC_FILTER_STRING:
+    if filter_list != BASIC_FILTER_STRING:
         update.effective_message.reply_text(
             filter_list, parse_mode=telegram.ParseMode.MARKDOWN
         )
@@ -79,16 +79,12 @@ def filters(bot: Bot, update: Update):
     )  # use python's maxsplit to separate Cmd, keyword, and reply_text
 
     conn = connected(bot, update, chat, user.id)
-    if not conn == False:
+    if conn != False:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
         chat_id = update.effective_chat.id
-        if chat.type == "private":
-            chat_name = "local filters"
-        else:
-            chat_name = chat.title
-
+        chat_name = "local filters" if chat.type == "private" else chat.title
     if len(args) < 2:
         return
 
@@ -242,16 +238,12 @@ def stop_filter(bot: Bot, update: Update):
     args = update.effective_message.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
-    if not conn == False:
+    if conn != False:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
         chat_id = chat.id
-        if chat.type == "private":
-            chat_name = "local notes"
-        else:
-            chat_name = chat.title
-
+        chat_name = "local notes" if chat.type == "private" else chat.title
     if len(args) < 2:
         return
 
@@ -355,9 +347,10 @@ def reply_filter(bot: Bot, update: Update):
                 keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
 
-                should_preview_disabled = True
-                if "telegra.ph" in filt.reply or "youtu.be" in filt.reply:
-                    should_preview_disabled = False
+                should_preview_disabled = (
+                    "telegra.ph" not in filt.reply
+                    and "youtu.be" not in filt.reply
+                )
 
                 try:
                     message.reply_text(
@@ -367,19 +360,19 @@ def reply_filter(bot: Bot, update: Update):
                         reply_markup=keyboard,
                     )
                 except BadRequest as excp:
-                    if excp.message == "Unsupported url protocol":
-                        message.reply_text(
-                            "You seem to be trying to use an unsupported url protocol. Telegram "
-                            "doesn't support buttons for some protocols, such as tg://. Please try "
-                            "again, or ask in @MarieSupport for help."
-                        )
-                    elif excp.message == "Replied message not found":
+                    if excp.message == "Replied message not found":
                         bot.send_message(
                             chat.id,
                             filt.reply,
                             parse_mode=ParseMode.MARKDOWN,
                             disable_web_page_preview=True,
                             reply_markup=keyboard,
+                        )
+                    elif excp.message == "Unsupported url protocol":
+                        message.reply_text(
+                            "You seem to be trying to use an unsupported url protocol. Telegram "
+                            "doesn't support buttons for some protocols, such as tg://. Please try "
+                            "again, or ask in @MarieSupport for help."
                         )
                     else:
                         message.reply_text(

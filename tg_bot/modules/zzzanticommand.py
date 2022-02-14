@@ -24,8 +24,7 @@ def rem_cmds(bot: Bot, update: Update, args: List[str]) -> str:
     user = update.effective_user  # type: Optional[User]
 
     if not args:
-        del_pref = sql.get_cmd_pref(chat.id)
-        if del_pref:
+        if del_pref := sql.get_cmd_pref(chat.id):
             update.effective_message.reply_text("I should be deleting commands now.")
         else:
             update.effective_message.reply_text("I'm currently not deleting commands !.")
@@ -56,9 +55,7 @@ def rem_cmds(bot: Bot, update: Update, args: List[str]) -> str:
 def rem_slash_commands(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
-    del_pref = sql.get_cmd_pref(chat.id)
-
-    if del_pref:
+    if del_pref := sql.get_cmd_pref(chat.id):
         try:
             msg.delete()
         except BadRequest as excp:
